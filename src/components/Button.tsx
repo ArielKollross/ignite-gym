@@ -1,5 +1,6 @@
 import {
     ButtonSpinner,
+    Center,
     Button as GluestackButton,
     Text,
 } from '@gluestack-ui/themed'
@@ -30,13 +31,15 @@ export function Button({ title,
             {isLoading ? (
                 <ButtonSpinner color="$white" />
             ) : (
-                <Text
-                    color={variant === 'outline' ? '$green500' : '$white'}
-                    fontFamily="$heading"
-                    fontSize="$sm"
-                >
-                    {title}
-                </Text>
+                <Center>
+                    <Text
+                        color={variant === 'outline' ? '$green500' : '$white'}
+                        fontFamily="$heading"
+                        fontSize="$sm"
+                    >
+                        {title}
+                    </Text>
+                </Center>
             )}
         </GluestackButton>
     )
