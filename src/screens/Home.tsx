@@ -1,10 +1,21 @@
+import { ExerciseCard } from "@/components/ExerciseCard";
 import { Group } from "@/components/Group";
 import { HomeHeader } from "@/components/HomeHeader";
+import { AppNavigatorRoutesProps } from "@/routes/app.routes";
 import { Heading, HStack, Text, VStack } from "@gluestack-ui/themed";
+import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import { FlatList } from "react-native";
 
 export function Home() {
+    const [exercises, setExercises] = useState([
+        'Puxada frontal',
+        'Remada unilateral',
+        'Remada unilateral',
+        'Puxada frontal',
+        'Remada unilateral',
+        'Remada unilateral',
+    ]);
     const [groups, setGroups] = useState([
         'costas',
         'peito',
@@ -13,7 +24,13 @@ export function Home() {
         'triceps',
         'perna'
     ]);
-    const [groupSelected, setGroupSelected] = useState(['costas']);
+    const [groupSelected, setGroupSelected] = useState('costas');
+
+    const navigation = useNavigation<AppNavigatorRoutesProps>()
+
+    function handleOpenExerciseDetails() {
+        navigation.navigate("exercise")
+    }
 
 
     return (
@@ -26,7 +43,7 @@ export function Home() {
                 renderItem={({ item }) => (
                     <Group
                         name={item}
-                        isActive={groupSelected === item}
+                        isActive={groupSelected.toLowerCase() === item.toLowerCase()}
                         onPress={() => setGroupSelected(item)}
                     />
                 )}
@@ -42,16 +59,27 @@ export function Home() {
                 }}
             />
 
-            <VStack px={"$8"}>
+            <VStack px={"$8"} flex={1}>
                 <HStack justifyContent="space-between" mb={"$8"}>
                     <Heading color="$gray200" fontSize={"$lg"} fontFamily="$heading">
                         Exercícios
                     </Heading>
                     <Text color="$gray200" fontSize={"$sm"} fontFamily="$heading">
-                        3
+                        {exercises.length}
                     </Text>
                 </HStack>
+
             </VStack>
+
+            <FlatList
+                data={exercises}
+                keyExtractor={item => item}
+                renderItem={({ item }) => (
+                    <ExerciseCard onPress={handleOpenExerciseDetails} />
+                )}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 20 }}
+            />
         </VStack >
     )
 }
