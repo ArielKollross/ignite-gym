@@ -4,6 +4,7 @@ import {
     Image,
     ScrollView,
     Text,
+    useToast,
     VStack,
 } from '@gluestack-ui/themed'
 import BackgroundImg from '@/assets/background.png'
@@ -16,8 +17,8 @@ import { useForm, Controller } from 'react-hook-form'
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup"
 import { api } from '@/services/api'
-import axios from 'axios'
-import { Alert } from 'react-native'
+import { AppError } from '@/utils/AppError'
+import { ToastMessage } from '@/components/ToastMessage'
 
 type FormDataProps = {
     name: string;
@@ -44,6 +45,8 @@ export function SignUp() {
         resolver: yupResolver(signUpSchema)
     });
 
+    const toast = useToast();
+
     const navigation = useNavigation<AuthNavigatorRoutesProps>()
 
     function handleLogin() {
@@ -58,9 +61,22 @@ export function SignUp() {
 
             console.log(response)
         } catch (error) {
-            if (axios.isAxiosError(error)) {
-                Alert.alert(error.response?.data.message);
-            }
+            const isAppError = error instanceof AppError;
+            const title = isAppError
+                ? error.message
+                : 'Ops, algo deu errado. Tente novamente'
+
+            return toast.show({
+                placement: "top",
+                render: ({ id }) => (
+                    <ToastMessage
+                        id={id}
+                        action="error"
+                        title={title}
+                        onClose={() => toast.close(id)}
+                    />
+                )
+            });
         }
     }
 
