@@ -1,0 +1,11 @@
+{
+    "editor.defaultFormatter": "biomejs.biome",
+    "[swift]": {
+        "editor.defaultFormatter": "sswg.swift-lang"
+    },
+    "java.configuration.updateBuildConfiguration": "disabled",
+    "[kotlin]": {
+        "editor.defaultFormatter": "cstef.kotlin-formatter"
+    },
+    "git.ignoreLimitWarning": true
+}

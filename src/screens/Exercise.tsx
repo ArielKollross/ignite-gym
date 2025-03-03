@@ -41,7 +41,10 @@ export function Exercise() {
 
             </VStack>
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 32 }}
+            >
                 <VStack p={"$8"} flex={1}>
                     <Image
                         source={{ uri: "https://www.oxerbrasil.com.br/wp-content/uploads/2022/07/mulher-se-exercitando-lrQPTQs7nQQ-unsplash.jpg.webp" }}

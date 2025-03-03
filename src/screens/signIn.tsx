@@ -1,60 +1,152 @@
-import { VStack, Image, Center, Text, Heading, ScrollView } from "@gluestack-ui/themed";
+import {
+	VStack,
+	Image,
+	Center,
+	Text,
+	Heading,
+	ScrollView,
+	useToast,
+} from "@gluestack-ui/themed";
 
-import BackgroundImage from "@/assets/background.png"
-import Logo from "@/assets/logo.svg"
+import BackgroundImage from "@/assets/background.png";
+import Logo from "@/assets/logo.svg";
 import { Input } from "@/components/Input";
 import { Button } from "@/components/Button";
 
 import { useNavigation } from "@react-navigation/native";
-import { AuthNavigatorRoutesProps } from "@/routes/auth.routes";
+import type { AuthNavigatorRoutesProps } from "@/routes/auth.routes";
+import { Controller, useForm } from "react-hook-form";
+import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
+import { AppError } from "@/utils/AppError";
+import { ToastMessage } from "@/components/ToastMessage";
+
+type FormData = {
+	email: string;
+	password: string;
+};
 
 export function SignIn() {
-    const navigation = useNavigation<AuthNavigatorRoutesProps>()
+	const { signIn } = useAuth();
+	const [isLoading, setIsLoading] = useState(false);
+	const navigation = useNavigation<AuthNavigatorRoutesProps>();
+	const toast = useToast();
 
-    function handleNewAccount() {
-        navigation.navigate("SignUp")
-    }
-    return (
-        <ScrollView
-            contentContainerStyle={{ flexGrow: 1 }}
-            showsVerticalScrollIndicator={false}
-        >
-            <VStack flex={1}>
-                <Image
-                    w="$full"
-                    h={624}
-                    source={BackgroundImage}
-                    defaultSource={BackgroundImage}
-                    alt="Pessoas treinanda na academia"
-                    position="absolute"
-                />
+	const {
+		control,
+		handleSubmit,
+		formState: { errors },
+	} = useForm<FormData>();
 
-                <VStack flex={1} px="$10" pb="$10">
-                    <Center my='$24'>
-                        <Logo />
+	function handleNewAccount() {
+		navigation.navigate("SignUp");
+	}
 
-                        <Text color="$gray100" fontSize="$sm">
-                            Treine sua mente e seu corpo
-                        </Text>
-                    </Center>
+	async function handleSignIn({ email, password }: FormData) {
+		setIsLoading(true);
 
-                    <Center gap="$2">
-                        <Heading color="$gray100">Acesse a conta</Heading>
+		try {
+			await signIn(email, password);
+		} catch (error) {
+			console.error(error);
+			const isAppError = error instanceof AppError;
 
-                        <Input placeholder="E-mail" keyboardType="email-address" autoCapitalize="none" />
-                        <Input placeholder="Senha" secureTextEntry />
+			const title = isAppError
+				? error.message
+				: "Ops, algo deu errado. Tente novamente";
 
-                        <Button title="Acessar" />
-                    </Center>
+			toast.show({
+				placement: "top",
+				render: ({ id }) => (
+					<ToastMessage
+						id={id}
+						action="error"
+						title={title}
+						onClose={() => toast.close(id)}
+					/>
+				),
+			});
+			setIsLoading(false);
+		}
 
-                    <Center flex={1} justifyContent="flex-end" marginTop="$4">
-                        <Text color="$gray100" fontSize="$sm" mb="$3" fontFamily="$body">
-                            Ainda não tem acesso?
-                        </Text>
-                        <Button onPress={handleNewAccount} title="Criar conta" variant="outline" />
-                    </Center>
-                </VStack>
-            </VStack>
-        </ScrollView>
-    )
+		setIsLoading(false);
+	}
+
+	return (
+		<ScrollView
+			contentContainerStyle={{ flexGrow: 1 }}
+			showsVerticalScrollIndicator={false}
+		>
+			<VStack flex={1}>
+				<Image
+					w="$full"
+					h={624}
+					source={BackgroundImage}
+					defaultSource={BackgroundImage}
+					alt="Pessoas treinanda na academia"
+					position="absolute"
+				/>
+
+				<VStack flex={1} px="$10" pb="$10">
+					<Center my="$24">
+						<Logo />
+
+						<Text color="$gray100" fontSize="$sm">
+							Treine sua mente e seu corpo
+						</Text>
+					</Center>
+
+					<Center gap="$2">
+						<Heading color="$gray100">Acesse a conta</Heading>
+
+						<Controller
+							control={control}
+							name="email"
+							rules={{ required: "Informe o e-mail" }}
+							render={({ field: { onChange } }) => (
+								<Input
+									placeholder="E-mail"
+									keyboardType="email-address"
+									autoCapitalize="none"
+									onChangeText={onChange}
+									errorMessage={errors.email?.message}
+								/>
+							)}
+						/>
+
+						<Controller
+							control={control}
+							name="password"
+							rules={{ required: "Informe a senha" }}
+							render={({ field: { onChange } }) => (
+								<Input
+									placeholder="Senha"
+									secureTextEntry
+									onChangeText={onChange}
+									errorMessage={errors.password?.message}
+								/>
+							)}
+						/>
+
+						<Button
+							title="Acessar"
+							onPress={handleSubmit(handleSignIn)}
+							isLoading={isLoading}
+						/>
+					</Center>
+
+					<Center flex={1} justifyContent="flex-end" marginTop="$4">
+						<Text color="$gray100" fontSize="$sm" mb="$3" fontFamily="$body">
+							Ainda não tem acesso?
+						</Text>
+						<Button
+							onPress={handleNewAccount}
+							title="Criar conta"
+							variant="outline"
+						/>
+					</Center>
+				</VStack>
+			</VStack>
+		</ScrollView>
+	);
 }
