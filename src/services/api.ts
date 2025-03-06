@@ -1,9 +1,9 @@
 import { AppError } from "@/utils/AppError";
 import axios from "axios";
 
-const localHost = "192.168.0.124";
+const localHost = "http://192.168.0.128";
 const api = axios.create({
-	baseURL: `http://${localHost}:3333`,
+	baseURL: `${localHost}:3333`,
 });
 
 api.interceptors.response.use(
