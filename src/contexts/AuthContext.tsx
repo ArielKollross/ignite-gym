@@ -1,6 +1,11 @@
 import type { UserDTO } from "@/dtos/UserDTO";
 import { api } from "@/services/api";
 import {
+	storageAuthTokenGet,
+	storageAuthTokenRemove,
+	storageAuthTokenSave,
+} from "@/storage/storageAuthToken";
+import {
 	storageUserSave,
 	storageUserGet,
 	storageUserRemove,
@@ -24,17 +29,15 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
 	const [user, setUser] = useState<UserDTO>({} as UserDTO);
 	const [isLoadingUserStorage, setIsLoadingUserStorage] = useState(false);
 
-	async function signIn(email: string, password: string) {
-		setIsLoadingUserStorage(true);
-		try {
-			const { data } = await api.post("/sessions", { email, password });
-			console.log(data);
+	async function userAndTokenUpdate(user: UserDTO, token: string) {
+		api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-			if (data.user && data.token) {
-				setUser(data.user);
-				storageUserSave(data.user);
-				setIsLoadingUserStorage(false);
-			}
+		setUser(user);
+	}
+
+	async function storageUserAndTokenSave(user: UserDTO, token: string) {
+		try {
+			await Promise.all([storageUserSave(user), storageAuthTokenSave(token)]);
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -43,11 +46,29 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
 		}
 	}
 
+	async function signIn(email: string, password: string) {
+		setIsLoadingUserStorage(true);
+		try {
+			const { data } = await api.post("/sessions", { email, password });
+			console.log(data);
+
+			if (data.user && data.token) {
+				await storageUserAndTokenSave(data.user, data.token);
+
+				userAndTokenUpdate(data.user, data.token);
+			}
+		} catch (error) {
+			console.error(error);
+			throw error;
+		}
+		setIsLoadingUserStorage(false);
+	}
+
 	async function signOut() {
 		try {
 			setIsLoadingUserStorage(true);
 			setUser({} as UserDTO);
-			await storageUserRemove();
+			await Promise.all([storageUserRemove(), storageAuthTokenRemove()]);
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -57,11 +78,22 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
 	}
 
 	async function loadUserData() {
-		const userStorage = await storageUserGet();
+		try {
+			setIsLoadingUserStorage(true);
 
-		if (userStorage) {
-			setUser(userStorage);
+			const [userStorage, token] = await Promise.all([
+				storageUserGet(),
+				storageAuthTokenGet(),
+			]);
+
+			if (token && userStorage) {
+				userAndTokenUpdate(userStorage, token);
+			}
+		} catch (error) {
+			console.error(error);
 		}
+
+		setIsLoadingUserStorage(false);
 	}
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
