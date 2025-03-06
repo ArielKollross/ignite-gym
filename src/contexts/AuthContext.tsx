@@ -30,7 +30,7 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
 			const { data } = await api.post("/sessions", { email, password });
 			console.log(data);
 
-			if (data.user) {
+			if (data.user && data.token) {
 				setUser(data.user);
 				storageUserSave(data.user);
 				setIsLoadingUserStorage(false);
