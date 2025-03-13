@@ -43,9 +43,9 @@ export function SignIn() {
 	}
 
 	async function handleSignIn({ email, password }: FormData) {
-		setIsLoading(true);
-
 		try {
+			setIsLoading(true);
+
 			await signIn(email, password);
 		} catch (error) {
 			console.error(error);
@@ -66,10 +66,9 @@ export function SignIn() {
 					/>
 				),
 			});
+		} finally {
 			setIsLoading(false);
 		}
-
-		setIsLoading(false);
 	}
 
 	return (

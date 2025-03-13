@@ -14,6 +14,7 @@ import { createContext, useEffect, useState } from "react";
 
 export type AuthContextDataProps = {
 	user: UserDTO;
+	updateUserProfile: (userUpdated: UserDTO) => Promise<void>;
 	isLoadingUserStorage: boolean;
 	signIn: (email: string, password: string) => Promise<void>;
 	signOut: () => Promise<void>;
@@ -37,6 +38,7 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
 
 	async function storageUserAndTokenSave(user: UserDTO, token: string) {
 		try {
+			setIsLoadingUserStorage(true);
 			await Promise.all([storageUserSave(user), storageAuthTokenSave(token)]);
 		} catch (error) {
 			console.error(error);
@@ -47,8 +49,9 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
 	}
 
 	async function signIn(email: string, password: string) {
-		setIsLoadingUserStorage(true);
 		try {
+			setIsLoadingUserStorage(true);
+
 			const { data } = await api.post("/sessions", { email, password });
 			console.log(data);
 
@@ -60,8 +63,9 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
 		} catch (error) {
 			console.error(error);
 			throw error;
+		} finally {
+			setIsLoadingUserStorage(false);
 		}
-		setIsLoadingUserStorage(false);
 	}
 
 	async function signOut() {
@@ -91,9 +95,19 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
 			}
 		} catch (error) {
 			console.error(error);
+		} finally {
+			setIsLoadingUserStorage(false);
 		}
+	}
 
-		setIsLoadingUserStorage(false);
+	async function updateUserProfile(userUpdated: UserDTO) {
+		try {
+			setUser(userUpdated);
+			await storageUserSave(userUpdated);
+		} catch (error) {
+			console.error(error);
+			throw error;
+		}
 	}
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
@@ -103,7 +117,7 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
 
 	return (
 		<AuthContext.Provider
-			value={{ user, signIn, isLoadingUserStorage, signOut }}
+			value={{ user, signIn, isLoadingUserStorage, signOut, updateUserProfile }}
 		>
 			{children}
 		</AuthContext.Provider>

@@ -1,7 +1,7 @@
 import { AppError } from "@/utils/AppError";
 import axios from "axios";
 
-const localHost = "http://192.168.0.128";
+const localHost = "http://192.168.0.130";
 const api = axios.create({
 	baseURL: `${localHost}:3333`,
 });
