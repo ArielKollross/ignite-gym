@@ -9,7 +9,10 @@ export async function storageUserSave(user: UserDTO) {
 
 export async function storageUserGet() {
 	const storage = await AsyncStorage.getItem(USER_STORAGE);
+	// console.log("storage", storage);
 	const user: UserDTO = storage ? JSON.parse(storage) : {};
+
+	// console.log("storageUserGet", user);
 
 	return user;
 }

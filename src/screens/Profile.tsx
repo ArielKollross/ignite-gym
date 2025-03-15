@@ -15,6 +15,7 @@ import { api } from "@/services/api";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { Loading } from "@/components/Loading";
+import DefaultImage from "@/assets/userPhotoDefault.png";
 
 type FormDataProps = {
 	name: string;
@@ -74,9 +75,6 @@ const profileSchema = yup.object({
 export function Profile() {
 	const [isUpdating, setIsUpdating] = useState(false);
 	const [photoIsLoading, setPhotoIsLoading] = useState(false);
-	const [userPhoto, setUserPhoto] = useState(
-		"https://github.com/arielkollross.png",
-	);
 
 	const toast = useToast();
 	const { user, updateUserProfile } = useAuth();
@@ -127,7 +125,44 @@ export function Profile() {
 				});
 			}
 
-			setUserPhoto(photoUri);
+			const fileExtension = photoUri.split(".").pop();
+
+			const photoFile = {
+				name: `${user.name}.${fileExtension}`.toLowerCase(),
+				uri: photoUri,
+				type: `image/${fileExtension}`,
+				// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+			} as any;
+
+			const userPhotoUploadForm = new FormData();
+			userPhotoUploadForm.append("avatar", photoFile);
+
+			const avatarUpdateResponse = await api.patch(
+				"/users/avatar",
+				userPhotoUploadForm,
+				{
+					headers: {
+						"Content-Type": "multipart/form-data",
+					},
+				},
+			);
+
+			const userUpdated = user;
+			userUpdated.avatar = avatarUpdateResponse.data.avatar;
+
+			await updateUserProfile(userUpdated);
+
+			toast.show({
+				placement: "top",
+				render: ({ id }) => (
+					<ToastMessage
+						id={id}
+						action="success"
+						title="Foto atualizada com sucesso"
+						onClose={() => toast.close(id)}
+					/>
+				),
+			});
 		} catch (error) {
 			console.error(error);
 		} finally {
@@ -188,7 +223,11 @@ export function Profile() {
 			<ScrollView contentContainerStyle={{ paddingBottom: 36 }}>
 				<Center mt={"$6"} px={"$10"}>
 					<UserPhoto
-						source={{ uri: userPhoto }}
+						source={
+							user?.avatar
+								? { uri: `${api.defaults.baseURL}/avatar/${user.avatar}` }
+								: DefaultImage
+						}
 						alt="Imagem do Usuário"
 						size="xl"
 					/>
