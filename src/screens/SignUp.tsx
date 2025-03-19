@@ -75,12 +75,14 @@ export function SignUp() {
 
 			await signIn(email, password);
 		} catch (error) {
+			console.error(error);
 			setIsLoading(false);
 
 			const isAppError = error instanceof AppError;
-			const title = isAppError
-				? error.message
-				: "Ops, algo deu errado. Tente novamente";
+			const title =
+				isAppError && typeof error.message === "string"
+					? error.message
+					: "Ops, algo deu errado. Tente novamente";
 
 			return toast.show({
 				placement: "top",

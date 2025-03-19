@@ -16,7 +16,7 @@ type APIInstanceProps = AxiosInstance & {
 	registerInterceptTokenManager: (singOut: SignOut) => () => void;
 };
 
-const localHost = "http://192.168.0.130";
+const localHost = "http://192.168.0.131";
 const api = axios.create({
 	baseURL: `${localHost}:3333`,
 }) as APIInstanceProps;

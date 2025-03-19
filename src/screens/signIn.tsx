@@ -51,9 +51,12 @@ export function SignIn() {
 			console.error(error);
 			const isAppError = error instanceof AppError;
 
-			const title = isAppError
-				? error.message
-				: "Ops, algo deu errado. Tente novamente";
+			const title =
+				isAppError && typeof error.message === "string"
+					? error.message
+					: "Ops, algo deu errado. Tente novamente";
+
+			console.log(title);
 
 			toast.show({
 				placement: "top",
